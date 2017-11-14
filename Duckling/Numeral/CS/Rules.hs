@@ -68,7 +68,61 @@ ruleNumeral = Rule
     ]
   , prod = \tokens -> case tokens of
       (Token RegexMatch (GroupMatch (match:_)):_) ->
-        HashMap.lookup (Text.toLower match) ruleNumeralMap >>= integer
+        HashMap.lookup (Text.toLower match) oneToNineteenMap >>= integer
+      _ -> Nothing
+  }
+
+ruleTens :: Rule
+ruleTens = Rule
+  { name = "number (20..90)"
+  , pattern = [ regex "(dvacet|t(\x0159)icet|(č)ty(\x0159)icet|pades(á)t|(š)edes(á)t|sedmdes(á)t|osmdes(á)t|devades(á)t)" ]
+  , prod = \tokens -> case tokens of
+      (Token RegexMatch (GroupMatch (match:_)):_) ->
+        HashMap.lookup (Text.toLower match) tensMap >>= integer
+      _ -> Nothing
+  }
+
+rulePowersOfTen :: Rule
+rulePowersOfTen = Rule
+  { name = "powers of ten"
+  , pattern =
+    [ regex "(sto|dvěstě|třista|čtyřista|pětset|šestset|sedmset|osmset|devětset)"]
+  , prod = \tokens -> case tokens of
+      (Token RegexMatch (GroupMatch (match:_)):_) -> do {
+        hundreds <- HashMap.lookup (Text.toLower match) hundredsMap >>= integer >>= withGrain 2 >>= withMultipliable;
+        return hundreds
+      }
+      _ -> Nothing
+  }
+
+ruleCompositeTensWithSpace :: Rule
+ruleCompositeTensWithSpace = Rule
+  { name = "number 21..99 with space"
+  , pattern =
+    [ oneOf [20, 30..90]
+    , numberBetween 1 10
+    ]
+  , prod = \tokens -> case tokens of
+      (Token Numeral (NumeralData {TNumeral.value = tens}):
+       Token Numeral (NumeralData {TNumeral.value = ones}):
+       _) -> double $ tens + ones
+      _ -> Nothing
+  }
+
+patternTens = "(dvacet|t\x0159icet|čty\x0159icet|padesát|šedesát|sedmdesát|osmdesát|devadesát)"
+patternDigits = "(jed(en|n[ao])|dv(a|\x0115)|t\x0159i|čty\x0159i|p\x0115t|šest|sedm|osm|dev\x0115t)"
+
+ruleCompositeTens :: Rule
+ruleCompositeTens = Rule
+  { name = "number 21..99"
+  , pattern =
+    [ regex $ ( patternDigits ++ patternTens ) ]
+  , prod = \tokens -> case tokens of
+      (Token RegexMatch (GroupMatch (tens:ones:_)):_) -> (
+              case (HashMap.lookup (Text.toLower tens) tensMap) of
+                  Just n      -> integer $ ( n * 10 + fromMaybe 0 (HashMap.lookup (Text.toLower ones) oneToNineteenMap) )
+                  Nothing     -> Nothing
+             )
       _ -> Nothing
   }
 
