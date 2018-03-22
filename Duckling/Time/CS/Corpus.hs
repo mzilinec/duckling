@@ -17,19 +17,22 @@ module Duckling.Time.CS.Corpus
 import Data.String
 import Prelude
 
+import Duckling.Locale
+import Duckling.Resolve
 import Duckling.Testing.Types hiding (examples)
 import Duckling.Time.Corpus
 import Duckling.Time.Types hiding (Month)
 import Duckling.TimeGrain.Types hiding (add)
 
 corpus :: Corpus
-corpus = (testContext, allExamples)
+corpus = (testContext {locale = makeLocale CS Nothing}, allExamples)
 
 
 allExamples :: [Example]
 allExamples = concat
   [ examples (datetime (2013, 2, 12, 4, 30, 0) Second)
-             [ "teď"
+             [ "hned"
+             , "teď"
              ]
   , examples (datetime (2013, 2, 12, 0, 0, 0) Day)
              [ "dnes"

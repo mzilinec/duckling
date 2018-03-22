@@ -35,7 +35,7 @@ import qualified Duckling.TimeGrain.Types as TG
 
 ruleInstants :: [Rule]
 ruleInstants = mkRuleInstants
-  [ ("right now"    , TG.Second, 0  , "(teď|hned)"                       )
+  [ ("right now"    , TG.Second, 0  , "hned"                             )
   , ("today"        , TG.Day   , 0  , "dnes(ka)?|dnešní den|dnešek"      )
   , ("tomorrow"     , TG.Day   , 1  , "zítra|zítrejšek|zítřejší den"     )
   , ("yesterday"    , TG.Day   , - 1, "včera"                            )
@@ -156,7 +156,7 @@ rules =
 --  , ruleInNumeral
 --  , ruleTimezone
 --  , rulePartOfMonth
---  , ruleNow
+  ruleNow
 --  , ruleBlackFriday
   ]
   ++ ruleInstants
