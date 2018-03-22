@@ -48,4 +48,14 @@ allExamples = concat
              [ "zítra"
              , "zítřejší den"
              ]
+  , examples (datetime (2014, 1, 1, 0, 0, 0) Year)
+             [ "koncem roka"
+             ,  "konec roku"
+             ]
+  , examples (datetime (2013, 2, 14, 0, 0, 0) Day)
+             [ "čtvrtek"
+             ]
+  , examples (datetime (2013, 3, 0, 0, 0, 0) Month)
+             [ "březen"
+             ]
   ]

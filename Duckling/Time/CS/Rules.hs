@@ -39,8 +39,35 @@ ruleInstants = mkRuleInstants
   , ("today"        , TG.Day   , 0  , "dnes(ka)?|dnešní den|dnešek"      )
   , ("tomorrow"     , TG.Day   , 1  , "zítra|zítrejšek|zítřejší den"     )
   , ("yesterday"    , TG.Day   , - 1, "včera"                            )
-  , ("end of month" , TG.Month , 1  , "(kon(ec|ci|cem) měsíce)"          )
-  , ("end of year"  , TG.Year  , 1  , "(kon(ec|ci|cem) rok[au])"         )
+  , ("end of month" , TG.Month , 1  , "kon(ec|ci|cem) měsíce"            )
+  , ("end of year"  , TG.Year  , 1  , "kon(ec|ci|cem) rok[au]"           )
+  ]
+
+ruleDaysOfWeek :: [Rule]
+ruleDaysOfWeek = mkRuleDaysOfWeek
+  [ ( "pondělí"     , "pondělí|pon?\\.?"         )
+  , ( "úterý"       , "úterý|úte?\\.?"           )
+  , ( "středa"      , "středa|stř?\\.?"          )
+  , ( "čtvrtek"     , "čtvrtek|čtv?\\.?"         )
+  , ( "pátek"       , "pátek|pát?\\.?"           )
+  , ( "sobota"      , "sobota|sob?\\.?"          )
+  , ( "neděle"      , "neděle|ned?\\.?"          )
+  ]
+
+ruleMonths :: [Rule]
+ruleMonths = mkRuleMonths
+  [ ( "Leden"     , "led(en|na|nu)|led\\.?"         )
+  , ( "Únor"      , "únor(a|u)?|úno?\\.?"           )
+  , ( "Březen"    , "břez(en|na|nu)|bře\\.?"        )
+  , ( "Duben"     , "dub(en|na|nu)|dub\\.?"         )
+  , ( "Květen"    , "květ(en|na|nu)|kvě\\.?"        )
+  , ( "Červen"    , "červ(en|na|nu)"                )
+  , ( "Červenec"  , "červen(ec|ce|ci)"              )
+  , ( "Srpen"     , "srp(en|na|nu)|srp\\.?"         )
+  , ( "Září"      , "září|zář?\\.?"                 )
+  , ( "Říjen"     , "říj(en|na|nu)|říj\\.?"         )
+  , ( "Listopad"  , "listopadu?|lis\\.?"            )
+  , ( "Prosinec"  , "prosin(ec|ce|ci)|pro\\.?"      )
   ]
 
 ruleNow :: Rule
@@ -160,7 +187,7 @@ rules =
 --  , ruleBlackFriday
   ]
   ++ ruleInstants
---  ++ ruleDaysOfWeek
---  ++ ruleMonths
+  ++ ruleDaysOfWeek
+  ++ ruleMonths
 --  ++ ruleUSHolidays
 --  ++ ruleMoreUSHolidays
