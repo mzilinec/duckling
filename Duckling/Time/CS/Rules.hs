@@ -1,0 +1,166 @@
+-- Copyright (c) 2016-present, Facebook, Inc.
+-- All rights reserved.
+--
+-- This source code is licensed under the BSD-style license found in the
+-- LICENSE file in the root directory of this source tree. An additional grant
+-- of patent rights can be found in the PATENTS file in the same directory.
+
+
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE NoRebindableSyntax #-}
+{-# LANGUAGE OverloadedStrings #-}
+
+module Duckling.Time.CS.Rules
+  ( rules ) where
+
+import Data.Maybe
+import Data.Text (Text)
+import Prelude
+import qualified Data.Text as Text
+
+import Duckling.Dimensions.Types
+import Duckling.Duration.Helpers (duration)
+import Duckling.Numeral.Helpers (parseInt)
+import Duckling.Numeral.Types (NumeralData (..))
+import Duckling.Ordinal.Types (OrdinalData (..))
+import Duckling.Regex.Types
+import Duckling.Time.Helpers
+import Duckling.Time.Types (TimeData (..))
+import Duckling.Types
+import qualified Duckling.Numeral.Types as TNumeral
+import qualified Duckling.Ordinal.Types as TOrdinal
+import qualified Duckling.Time.Types as TTime
+import qualified Duckling.TimeGrain.Types as TG
+
+
+ruleInstants :: [Rule]
+ruleInstants = mkRuleInstants
+  [ ("right now"    , TG.Second, 0  , "(teď|hned)"                       )
+  , ("today"        , TG.Day   , 0  , "dnes(ka)?|dnešní den|dnešek"      )
+  , ("tomorrow"     , TG.Day   , 1  , "zítra|zítrejšek|zítřejší den"     )
+  , ("yesterday"    , TG.Day   , - 1, "včera"                            )
+  , ("end of month" , TG.Month , 1  , "(kon(ec|ci|cem) měsíce)"          )
+  , ("end of year"  , TG.Year  , 1  , "(kon(ec|ci|cem) rok[au])"         )
+  ]
+
+ruleNow :: Rule
+ruleNow = Rule
+  { name = "now"
+  , pattern =
+    [ regex "teď"
+    ]
+  , prod = \_ -> tt now
+  }
+
+rules :: [Rule]
+rules =
+  [
+--    ruleIntersect
+--  , ruleIntersectOf
+--  , ruleAbsorbOnTime
+--  , ruleAbsorbOnADOW
+--  , ruleAbsorbInMonth
+--  , ruleAbsorbCommaTOD
+--  , ruleNextDOW
+--  , ruleNextTime
+--  , ruleThisTime
+--  , ruleLastTime
+--  , ruleTimeBeforeLastAfterNext
+--  , ruleLastDOWOfTime
+--  , ruleLastCycleOfTime
+--  , ruleLastWeekendOfMonth
+--  , ruleNthTimeOfTime
+--  , ruleTheNthTimeOfTime
+--  , ruleNthTimeAfterTime
+--  , ruleTheNthTimeAfterTime
+--  , ruleYear
+--  , ruleYearPastLatent
+--  , ruleYearFutureLatent
+--  , ruleTheDOMNumeral
+--  , ruleTheDOMOrdinal
+--  , ruleDOMLatent
+--  , ruleNamedDOMOrdinal
+--  , ruleMonthDOMNumeral
+--  , ruleDOMMonth
+--  , ruleDOMOfMonth
+--  , ruleDOMOrdinalMonthYear
+--  , ruleIdesOfMonth
+--  , ruleTODLatent
+--  , ruleAtTOD
+--  , ruleTODOClock
+--  , ruleHHMM
+--  , ruleHHMMLatent
+--  , ruleHHMMSS
+--  , ruleMilitaryAMPM
+--  , ruleTODAMPM
+--  , ruleHONumeral
+--  , ruleHODHalf
+--  , ruleHODQuarter
+--  , ruleNumeralToHOD
+--  , ruleHalfToHOD
+--  , ruleQuarterToHOD
+--  , ruleNumeralAfterHOD
+--  , ruleHalfAfterHOD
+--  , ruleQuarterAfterHOD
+--  , ruleHalfHOD
+--  , ruleYYYYMMDD
+--  , ruleMMYYYY
+--  , ruleNoonMidnightEOD
+--  , rulePartOfDays
+--  , ruleEarlyMorning
+--  , rulePODIn
+--  , rulePODThis
+--  , ruleTonight
+--  , ruleAfterPartofday
+--  , ruleTimePOD
+--  , rulePODofTime
+--  , ruleWeekend
+--  , ruleSeasons
+--  , ruleTODPrecision
+--  , rulePrecisionTOD
+--  , ruleIntervalFromMonthDDDD
+--  , ruleIntervalFromDDDDMonth
+--  , ruleIntervalMonthDDDD
+--  , ruleIntervalDDDDMonth
+--  , ruleIntervalDash
+--  , ruleIntervalFrom
+--  , ruleIntervalBetween
+--  , ruleIntervalTODDash
+--  , ruleIntervalTODFrom
+--  , ruleIntervalTODAMPM
+--  , ruleIntervalTODBetween
+--  , ruleIntervalBy
+--  , ruleIntervalByTheEndOf
+--  , ruleIntervalUntilTOD
+--  , ruleIntervalAfterTOD
+--  , ruleIntervalSinceTOD
+--  , ruleMemorialDay
+--  , ruleMemorialDayWeekend
+--  , ruleLaborDayWeekend
+--  , ruleCycleThisLastNext
+--  , ruleCycleTheAfterBeforeTime
+--  , ruleCycleAfterBeforeTime
+--  , ruleCycleLastNextN
+--  , ruleCycleOrdinalOfTime
+--  , ruleCycleTheOrdinalOfTime
+--  , ruleCycleTheOfTime
+--  , ruleCycleOrdinalAfterTime
+--  , ruleCycleTheOrdinalAfterTime
+--  , ruleCycleOrdinalQuarter
+--  , ruleCycleTheOrdinalQuarter
+--  , ruleCycleOrdinalQuarterYear
+--  , ruleDurationInWithinAfter
+--  , ruleDurationHenceAgo
+--  , ruleDurationAfterBeforeTime
+--  , ruleIntervalForDurationFrom
+--  , ruleInNumeral
+--  , ruleTimezone
+--  , rulePartOfMonth
+--  , ruleNow
+--  , ruleBlackFriday
+  ]
+  ++ ruleInstants
+--  ++ ruleDaysOfWeek
+--  ++ ruleMonths
+--  ++ ruleUSHolidays
+--  ++ ruleMoreUSHolidays

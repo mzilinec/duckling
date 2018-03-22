@@ -60,31 +60,84 @@ ruleNumeralMap = HashMap.fromList
   , ( "deset", 10)
   ]
 
+zeroNineteenMap :: HashMap Text Integer
+zeroNineteenMap = HashMap.fromList
+  [ ( "nula"        , 0 )
+  , ( "nic"         , 0 )
+  , ( "jeden"       , 1 )
+  , ( "jedna"       , 1 )
+  , ( "jedno"       , 1 )
+  , ( "dva"         , 2 )
+  , ( "dv\x0115"    , 2 )
+  , ( "tři"         , 3 )
+  , ( "čtyři"       , 4 )
+  , ( "pět"         , 5 )
+  , ( "šest"        , 6 )
+  , ( "sedm"        , 7 )
+  , ( "osm"         , 8 )
+  , ( "devět"       , 9 )
+  , ( "deset"       , 10 )
+  , ( "jedenáct"    , 11 )
+  , ( "dvanáct"     , 12 )
+  , ( "třináct"     , 13 )
+  , ( "čtrnáct"     , 14 )
+  , ( "patnáct"     , 15 )
+  , ( "šestnáct"    , 16 )
+  , ( "sedmnáct"    , 17 )
+  , ( "osmnáct"     , 18 )
+  , ( "devatenáct"  , 19 )
+  ]
+
+tensMap :: HashMap Text Integer
+tensMap = HashMap.fromList
+  [ ( "dvacet"   , 20 )
+  , ( "třicet"   , 30 )
+  , ( "čtyřicet" , 40 )
+  , ( "padesát"  , 50 )
+  , ( "šestdesát", 60 )
+  , ( "sedmdesát", 70 )
+  , ( "osmdesát" , 80 )
+  , ( "devadesát", 90 )
+  ]
+
+hundredsMap :: HashMap Text Integer
+hundredsMap = HashMap.fromList
+  [ ( "sto"      , 100 )
+  , ( "dvěstě"   , 200 )
+  , ( "třista"   , 300 )
+  , ( "čtyřista" , 400 )
+  , ( "pětset"   , 500 )
+  , ( "šestset"  , 600 )
+  , ( "sedmset"  , 700 )
+  , ( "osmset"   , 800 )
+  , ( "devětset" , 900 )
+  ]
+
 ruleNumeral :: Rule
 ruleNumeral = Rule
   { name = "number (0..10)"
   , pattern =
-    [ regex "(nula|jed(en|n[ao])|dv(a|\x0115)|t(\x0159)i|(č)ty(\x0159)i|p(\x0115)t|(š)est|sedm|osm|dev(\x0115)t|deset)"
+    [ regex "(jedenáct|dvanáct|třináct|čtrnáct|patnáct|šestnáct|sedmnáct|osmnáct|devatenáct|nula|jed(en|n[ao])|dv(a|\x0115)|t(\x0159)i|tři|(č)ty(\x0159)i|p(\x0115)t|(š)est|sedm|osm|dev(\x0115)t|deset)"
     ]
   , prod = \tokens -> case tokens of
       (Token RegexMatch (GroupMatch (match:_)):_) ->
-        HashMap.lookup (Text.toLower match) oneToNineteenMap >>= integer
+        HashMap.lookup (Text.toLower match) zeroNineteenMap >>= integer
       _ -> Nothing
   }
 
 ruleTens :: Rule
 ruleTens = Rule
-  { name = "number (20..90)"
-  , pattern = [ regex "(dvacet|t(\x0159)icet|(č)ty(\x0159)icet|pades(á)t|(š)edes(á)t|sedmdes(á)t|osmdes(á)t|devades(á)t)" ]
+  { name = "tens"
+  , pattern = [ regex "(dvacet|třicet|čtyřicet|padesát|šedesát|sedmdesát|osmdesát|devadesát)" ]
   , prod = \tokens -> case tokens of
       (Token RegexMatch (GroupMatch (match:_)):_) ->
         HashMap.lookup (Text.toLower match) tensMap >>= integer
       _ -> Nothing
   }
 
-rulePowersOfTen :: Rule
-rulePowersOfTen = Rule
-  { name = "powers of ten"
+ruleHundreds :: Rule
+ruleHundreds = Rule
+  { name = "hundreds"
   , pattern =
     [ regex "(sto|dvěstě|třista|čtyřista|pětset|šestset|sedmset|osmset|devětset)"]
   , prod = \tokens -> case tokens of
@@ -120,7 +173,7 @@ ruleCompositeTens = Rule
   , prod = \tokens -> case tokens of
       (Token RegexMatch (GroupMatch (tens:ones:_)):_) -> (
               case (HashMap.lookup (Text.toLower tens) tensMap) of
-                  Just n      -> integer $ ( n * 10 + fromMaybe 0 (HashMap.lookup (Text.toLower ones) oneToNineteenMap) )
+                  Just n      -> integer $ ( n * 10 + fromMaybe 0 (HashMap.lookup (Text.toLower ones) zeroNineteenMap) )
                   Nothing     -> Nothing
              )
       _ -> Nothing
@@ -130,4 +183,6 @@ rules :: [Rule]
 rules =
   [ ruleIntegerNumeric
   , ruleNumeral
+  , ruleTens
+  , ruleHundreds
   ]

@@ -44,4 +44,13 @@ allExamples = concat
   , examples (NumeralValue 4)
              [ "čtyři"
              ]
+  , examples (NumeralValue 15)
+             [ "patnáct"
+             ]
+  , examples (NumeralValue 20)
+             [ "dvacet"
+             ]
+  , examples (NumeralValue 200)
+             [ "dvěstě"
+             ]
   ]
