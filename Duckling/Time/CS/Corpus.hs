@@ -58,4 +58,18 @@ allExamples = concat
   , examples (datetime (2013, 3, 0, 0, 0, 0) Month)
              [ "březen"
              ]
+  , examples (datetime (2013, 12, 31, 0, 0, 0) Day)
+             [ "31. 12."
+             , "31.12."
+             ]
+  , examples (datetime (2013, 2, 12, 13, 25, 0) Minute)
+             [ "13:25"
+             , "13:25h"
+             , "13h25m"
+             , "13.25h"
+             ]
+  , examples (datetimeInterval ((2013, 2, 12, 18, 0, 0), (2013, 2, 13, 0, 0, 0)) Hour)
+             [ "dnes večer"
+             , "dnešní večer"
+             ]
   ]

@@ -47,11 +47,11 @@ ruleDaysOfWeek :: [Rule]
 ruleDaysOfWeek = mkRuleDaysOfWeek
   [ ( "pondělí"     , "pondělí|pon?\\.?"         )
   , ( "úterý"       , "úterý|úte?\\.?"           )
-  , ( "středa"      , "středa|stř?\\.?"          )
-  , ( "čtvrtek"     , "čtvrtek|čtv?\\.?"         )
-  , ( "pátek"       , "pátek|pát?\\.?"           )
-  , ( "sobota"      , "sobota|sob?\\.?"          )
-  , ( "neděle"      , "neděle|ned?\\.?"          )
+  , ( "středa"      , "střed[ay]|stř?\\.?"          )
+  , ( "čtvrtek"     , "čtvrt(?:ek|ku|ka)|čtv?\\.?"         )
+  , ( "pátek"       , "pát(?:ek|ku)|pát?\\.?"           )
+  , ( "sobota"      , "sobot[ayu]|sob?\\.?"          )
+  , ( "neděle"      , "neděl[ei]|ned?\\.?"          )
   ]
 
 ruleMonths :: [Rule]
@@ -78,6 +78,176 @@ ruleNow = Rule
     ]
   , prod = \_ -> tt now
   }
+
+ruleMorning :: Rule
+ruleMorning = Rule
+  { name = "morning"
+  , pattern =
+    [ regex "ráno|dopoledne"
+    ]
+  , prod = \_ ->
+      let from = hour False 6
+          to = hour False 12
+      in Token Time . mkLatent . partOfDay <$>
+           interval TTime.Open from to
+  }
+
+ruleNoon :: Rule
+ruleNoon = Rule
+  { name = "noon"
+  , pattern =
+    [ regex "(na )?oběd?|(ve )?dvanáct( hodin)?"
+    ]
+  , prod = \_ -> tt $ hour False 12
+  }
+
+ruleAfternoon :: Rule
+ruleAfternoon = Rule
+  { name = "afternoon"
+  , pattern =
+    [ regex "odpoledne"
+    ]
+  , prod = \_ ->
+      let from = hour False 12
+          to = hour False 19
+      in Token Time . mkLatent . partOfDay <$>
+           interval TTime.Open from to
+  }
+
+ruleEvening :: Rule
+ruleEvening = Rule
+  { name = "evening"
+  , pattern =
+    [ regex "večer"
+    ]
+  , prod = \_ ->
+      let from = hour False 18
+          to = hour False 0
+      in Token Time . mkLatent . partOfDay <$>
+           interval TTime.Open from to
+  }
+
+ruleNight :: Rule
+ruleNight = Rule
+  { name = "night"
+  , pattern =
+    [ regex "noc|v noci"
+    ]
+  , prod = \_ ->
+      let from = hour False 22
+          to = hour False 4
+      in Token Time . mkLatent . partOfDay <$>
+           interval TTime.Open from to
+  }
+
+ruleTimePartofday :: Rule
+ruleTimePartofday = Rule
+  { name = "<time> <part-of-day>"
+  , pattern =
+    [ dimension Time
+    , Predicate isAPartOfDay
+    ]
+  , prod = \tokens -> case tokens of
+      (Token Time td1:Token Time td2:_) ->
+        Token Time <$> intersect td1 td2
+      _ -> Nothing
+  }
+
+ruleThisPartofday :: Rule
+ruleThisPartofday = Rule
+  { name = "this <part-of-day>"
+  , pattern =
+    [ regex "dnešní|dnes"
+    , Predicate isAPartOfDay
+    ]
+  , prod = \tokens -> case tokens of
+      (_:Token Time td:_) -> Token Time . partOfDay <$>
+        intersect (cycleNth TG.Day 0) td
+      _ -> Nothing
+  }
+
+ruleInduringThePartofday :: Rule
+ruleInduringThePartofday = Rule
+  { name = "in|during the <part-of-day>"
+  , pattern =
+    [ regex "(in|an|am|w(ä)h?rend)( der| dem| des)?"
+    , Predicate isAPartOfDay
+    ]
+  , prod = \tokens -> case tokens of
+      (_:Token Time td:_) ->
+        tt $ notLatent td
+      _ -> Nothing
+  }
+
+ruleOnANamedday :: Rule
+ruleOnANamedday = Rule
+  { name = "on a named-day"
+  , pattern =
+    [ regex "v"
+    , Predicate isADayOfWeek
+    ]
+  , prod = \tokens -> case tokens of
+      (_:x:_) -> Just x
+      _ -> Nothing
+  }
+
+ruleFromDatetimeDatetimeInterval :: Rule
+ruleFromDatetimeDatetimeInterval = Rule
+  { name = "from <datetime> - <datetime> (interval)"
+  , pattern =
+    [ regex "od"
+    , dimension Time
+    , regex "\\-|do"
+    , dimension Time
+    ]
+  , prod = \tokens -> case tokens of
+      (_:Token Time td1:_:Token Time td2:_) ->
+        Token Time <$> interval TTime.Closed td1 td2
+      _ -> Nothing
+  }
+
+ruleDatetimeDatetimeInterval :: Rule
+ruleDatetimeDatetimeInterval = Rule
+  { name = "<datetime> - <datetime> (interval)"
+  , pattern =
+    [ Predicate isNotLatent
+    , regex "\\-|do"
+    , Predicate isNotLatent
+    ]
+  , prod = \tokens -> case tokens of
+      (Token Time td1:_:Token Time td2:_) ->
+        Token Time <$> interval TTime.Closed td1 td2
+      _ -> Nothing
+  }
+
+ruleHhmm :: Rule
+ruleHhmm = Rule
+  { name = "hh:mm"
+  , pattern =
+    [ regex "((?:[01]?\\d)|(?:2[0-3]))[:.h]([0-5]\\d)(?:h|hod|m|min)?\\.?"
+    ]
+  , prod = \tokens -> case tokens of
+      (Token RegexMatch (GroupMatch (m1:m2:_)):_) -> do
+        h <- parseInt m1
+        m <- parseInt m2
+        tt $ hourMinute False h m
+      _ -> Nothing
+  }
+
+ruleDDMM :: Rule
+ruleDDMM = Rule
+  { name = "dd.mm"
+  , pattern =
+    [ regex "(?:am\\s+)?([012]?[1-9]|10|20|30|31)\\. ?(10|11|12|0?[1-9])\\.?"
+    ]
+  , prod = \tokens -> case tokens of
+      (Token RegexMatch (GroupMatch (m1:m2:_)):_) -> do
+        d <- parseInt m1
+        m <- parseInt m2
+        tt $ monthDay m d
+      _ -> Nothing
+  }
+
 
 rules :: [Rule]
 rules =
@@ -183,7 +353,20 @@ rules =
 --  , ruleInNumeral
 --  , ruleTimezone
 --  , rulePartOfMonth
-  ruleNow
+    ruleNow
+  , ruleMorning
+  , ruleNoon
+  , ruleAfternoon
+  , ruleEvening
+  , ruleNight
+  , ruleOnANamedday
+  , ruleTimePartofday
+  , ruleThisPartofday
+  , ruleInduringThePartofday
+  , ruleFromDatetimeDatetimeInterval
+  , ruleDatetimeDatetimeInterval
+  , ruleHhmm
+  , ruleDDMM
 --  , ruleBlackFriday
   ]
   ++ ruleInstants
